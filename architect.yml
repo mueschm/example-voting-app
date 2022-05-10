@@ -1,0 +1,40 @@
+name: example-voting-app
+services:
+  vote:
+    build:
+      context: ./vote
+    command: python app.py
+    ${{ if architect.environment == 'local' }}:
+      volumes:
+        volume:
+          host_path: ./vote
+          mount_path: /app
+    interfaces:
+      main:
+        port: 80
+  redis:
+    image: redis:alpine
+    interfaces:
+      main: 6379
+  worker:
+    build:
+      context: ./worker
+  db:
+    image: postgres:9.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  result:
+    build:
+      context: ./result
+    command: nodemon server.js
+    ${{ if architect.environment == 'local' }}:
+      volumes:
+        volume:
+          host_path: ./result
+          mount_path: /app
+    interfaces:
+      main:
+        port: 80
+      main2:
+        port: 5858
